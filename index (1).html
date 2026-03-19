@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>for Mary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:    #ffffff;
+      --fg:    #111111;
+      --mid:   #666666;
+      --faint: #aaaaaa;
+      --line:  #e0e0e0;
+      --soft:  #f7f7f7;
+      --paper: #fefcf8;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Courier Prime', 'Courier New', Courier, monospace;
+    }
+
+    /* ── SECTIONS ── */
+    .section {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 60px 24px 120px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    .section.active { opacity: 1; pointer-events: all; }
+
+    .label {
+      font-size: 10px; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--faint);
+      margin-bottom: 40px;
+    }
+
+    /* ── COUNTER ── */
+    #counter {
+      position: fixed; top: 28px; right: 28px;
+      font-size: 10px; letter-spacing: 0.2em;
+      color: var(--faint); z-index: 1000;
+    }
+
+    /* ── NAV ── */
+    #nav-bar {
+      position: fixed; bottom: 36px;
+      left: 0; right: 0;
+      display: flex; justify-content: center; gap: 14px;
+      z-index: 1000;
+    }
+    .nav-btn {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      border: 1px solid var(--fg); background: none;
+      color: var(--fg); padding: 9px 24px; cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-btn:hover:not(:disabled) { background: var(--fg); color: var(--bg); }
+    .nav-btn:disabled { border-color: var(--line); color: var(--line); cursor: default; }
+
+    /* ────────────────────────────────────────
+       S1 — LETTER
+    ──────────────────────────────────────── */
+    .envelope-btn {
+      width: 240px; height: 158px;
+      border: 1px solid var(--fg);
+      background: none; cursor: pointer;
+      font-family: 'Courier Prime', monospace;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; transition: background 0.2s;
+    }
+    .envelope-btn:hover { background: var(--soft); }
+    .env-to {
+      font-family: 'Dancing Script', cursive;
+      font-size: 22px; color: var(--fg);
+    }
+    .env-hint {
+      font-size: 9px; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--faint);
+    }
+
+    /* Paper overlay */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(255,255,255,0.88);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 900;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s;
+      backdrop-filter: blur(6px);
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .paper-sheet {
+      background: var(--paper);
+      border: 1px solid #ddd8ce;
+      width: min(540px, 88vw); max-height: 80vh;
+      overflow-y: auto; padding: 60px 56px;
+      position: relative;
+      transform: translateY(28px) scale(0.95);
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .overlay.open .paper-sheet { transform: none; }
+    .paper-date {
+      font-size: 10px; letter-spacing: 0.2em; color: var(--faint);
+      margin-bottom: 32px; text-transform: uppercase;
+    }
+    .paper-body {
+      font-family: 'Dancing Script', cursive;
+      font-size: 21px; line-height: 2.15; color: #3d3830;
+    }
+    .overlay-close {
+      position: absolute; top: 18px; right: 20px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      background: none; border: none; color: var(--mid); cursor: pointer;
+    }
+    .overlay-close:hover { color: var(--fg); }
+
+    /* ────────────────────────────────────────
+       S2 — SLOT MACHINE
+    ──────────────────────────────────────── */
+    .machine-box {
+      border: 1px solid var(--fg);
+      padding: 44px 40px 40px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 28px;
+      min-width: 360px;
+    }
+    .reels-row { display: flex; gap: 3px; }
+    .reel-window {
+      width: 110px; height: 56px;
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .reel-strip { display: flex; flex-direction: column; }
+    .reel-item {
+      height: 56px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; letter-spacing: 0.04em;
+      padding: 0 6px; text-align: center;
+    }
+    .spin-btn {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      border: 1px solid var(--fg); background: none; color: var(--fg);
+      padding: 11px 40px; cursor: pointer; transition: all 0.2s;
+    }
+    .spin-btn:hover:not(:disabled) { background: var(--fg); color: var(--bg); }
+    .spin-btn:disabled { border-color: var(--line); color: var(--line); cursor: default; }
+    .slot-msg {
+      font-size: 11px; letter-spacing: 0.06em;
+      color: var(--mid); min-height: 20px; text-align: center;
+    }
+
+    /* ────────────────────────────────────────
+       S3 — SCRATCH CARD
+    ──────────────────────────────────────── */
+    .scratch-wrap {
+      position: relative;
+      width: min(400px, 82vw); height: 200px;
+    }
+    .scratch-back {
+      position: absolute; inset: 0;
+      border: 1px solid var(--fg);
+      display: flex; align-items: center; justify-content: center;
+      padding: 28px;
+    }
+    .scratch-back p {
+      font-family: 'Dancing Script', cursive;
+      font-size: 19px; line-height: 1.9; color: #3d3830; text-align: center;
+    }
+    #scratch-canvas {
+      position: absolute; top: 0; left: 0; cursor: crosshair; display: block;
+    }
+    .scratch-hint {
+      margin-top: 14px; font-size: 10px;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint);
+    }
+    .text-btn {
+      margin-top: 12px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      border: 1px solid var(--line); background: none; color: var(--mid);
+      padding: 7px 18px; cursor: pointer; transition: all 0.15s;
+    }
+    .text-btn:hover { border-color: var(--fg); color: var(--fg); }
+
+    /* ────────────────────────────────────────
+       S4 — GALLERY
+    ──────────────────────────────────────── */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 148px);
+      grid-template-rows: repeat(2, 148px);
+      gap: 4px;
+    }
+    .gal-item {
+      width: 148px; height: 148px;
+      border: 1px solid var(--line);
+      position: relative; overflow: hidden; cursor: pointer;
+    }
+    .gal-item img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: opacity 0.3s;
+    }
+    .gal-ph {
+      width: 100%; height: 100%;
+      background: var(--soft);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; letter-spacing: 0.12em; color: var(--faint);
+      text-transform: uppercase; transition: opacity 0.3s;
+    }
+    .gal-caption {
+      position: absolute; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      padding: 14px; text-align: center;
+      font-size: 11px; line-height: 1.75; color: var(--fg);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .gal-item.active .gal-caption { opacity: 1; }
+    .gal-item.active .gal-ph,
+    .gal-item.active img { opacity: 0; }
+    .gal-hint {
+      margin-top: 12px; font-size: 10px;
+      letter-spacing: 0.15em; color: var(--faint); text-transform: uppercase;
+    }
+
+    /* ────────────────────────────────────────
+       S5 — FLIP CARDS
+    ──────────────────────────────────────── */
+    .cards-wrap {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      justify-content: center; max-width: 580px;
+    }
+    .flip-card {
+      width: 118px; height: 154px;
+      perspective: 700px; cursor: pointer;
+    }
+    .flip-inner {
+      width: 100%; height: 100%;
+      position: relative; transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+    .flip-front, .flip-back {
+      position: absolute; inset: 0;
+      border: 1px solid var(--fg); backface-visibility: hidden;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 12px; text-align: center;
+    }
+    .flip-front { background: var(--bg); }
+    .flip-num { font-size: 26px; color: var(--fg); margin-bottom: 6px; }
+    .flip-lbl { font-size: 9px; letter-spacing: 0.2em; color: var(--faint); text-transform: uppercase; }
+    .flip-back {
+      background: var(--soft);
+      transform: rotateY(180deg);
+      font-size: 11px; line-height: 1.8; color: var(--fg);
+    }
+
+    /* ────────────────────────────────────────
+       S6 — TYPEWRITER
+    ──────────────────────────────────────── */
+    .tw-wrap { max-width: 460px; width: 100%; }
+    .tw-text {
+      font-size: 15px; line-height: 2.1; letter-spacing: 0.02em;
+      min-height: 168px;
+      border-left: 1px solid var(--line);
+      padding-left: 22px;
+    }
+    .cursor {
+      display: inline-block; width: 8px; height: 15px;
+      background: var(--fg); vertical-align: text-bottom;
+      animation: blink 0.9s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    .tw-controls { margin-top: 28px; display: flex; gap: 10px; }
+
+    /* ────────────────────────────────────────
+       S7 — CONSTELLATION
+    ──────────────────────────────────────── */
+    #star-canvas {
+      border: 1px solid var(--line); cursor: crosshair; display: block;
+    }
+    .star-hint {
+      margin-top: 12px; font-size: 10px;
+      letter-spacing: 0.15em; text-transform: uppercase; color: var(--faint);
+    }
+
+    /* ────────────────────────────────────────
+       S8 — MORSE
+    ──────────────────────────────────────── */
+    .morse-wrap {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 28px; max-width: 500px; width: 100%;
+    }
+    .morse-display {
+      width: 100%; border: 1px solid var(--fg);
+      padding: 24px 28px; min-height: 72px;
+      font-size: 24px; letter-spacing: 0.25em;
+      color: var(--fg); text-align: center;
+    }
+    .morse-display.flashing { color: var(--faint); }
+    .morse-decoded {
+      font-size: 11px; letter-spacing: 0.15em; color: var(--mid); min-height: 20px;
+    }
+    .morse-keys {
+      display: flex; gap: 12px;
+    }
+    .morse-key {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      border: 1px solid var(--fg); background: none; color: var(--fg);
+      padding: 10px 28px; cursor: pointer; transition: all 0.15s;
+    }
+    .morse-key:hover { background: var(--fg); color: var(--bg); }
+    .morse-key:active { background: var(--mid); color: var(--bg); }
+    .morse-hint {
+      font-size: 10px; letter-spacing: 0.12em; color: var(--faint);
+      text-align: center; line-height: 1.8;
+    }
+
+    /* ────────────────────────────────────────
+       S9 — BREATHING CIRCLE
+    ──────────────────────────────────────── */
+    .breath-wrap {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 36px;
+    }
+    .breath-circle-wrap {
+      position: relative; width: 200px; height: 200px;
+    }
+    .breath-ring {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 1px solid var(--line);
+      transition: transform 0s;
+    }
+    .breath-dot {
+      position: absolute; top: 50%; left: 50%;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--fg);
+      transform: translate(-50%, -50%);
+      transition: transform 0s;
+    }
+    .breath-label {
+      font-size: 11px; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--mid);
+      min-height: 20px; text-align: center;
+    }
+    .breath-msg {
+      font-size: 12px; letter-spacing: 0.08em; color: var(--faint);
+      text-align: center; max-width: 320px; line-height: 1.9;
+    }
+    .breath-btn {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      border: 1px solid var(--fg); background: none; color: var(--fg);
+      padding: 10px 32px; cursor: pointer; transition: all 0.2s;
+    }
+    .breath-btn:hover { background: var(--fg); color: var(--bg); }
+  </style>
+</head>
+<body>
+
+<div id="counter">01 / 09</div>
+<div id="nav-bar">
+  <button class="nav-btn" id="btn-prev" disabled>prev</button>
+  <button class="nav-btn" id="btn-next">next</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     S1 — LETTER
+══════════════════════════════════════ -->
+<section class="section active" id="s1">
+  <div class="label">01 — letter</div>
+  <button class="envelope-btn" id="open-letter">
+    <span class="env-to">Dear Mary,</span>
+    <span class="env-hint">click to open</span>
+  </button>
+</section>
+
+<div class="overlay" id="letter-overlay">
+  <div class="paper-sheet">
+    <button class="overlay-close" id="close-letter">close</button>
+    <div class="paper-date">March 2026</div>
+    <div class="paper-body">
+      Dear Mary,<br><br>
+      If you are reading this, it means you opened it &mdash;
+      and that already makes me love you more.<br><br>
+      There are things I have wanted to say, things that do not
+      come out right when I speak, so I wrote them instead.
+      You deserve more than clumsy words.
+      You deserve the careful ones.<br><br>
+      I am glad you exist. I am glad you are mine.
+      I hope every day I get to say that again.<br><br>
+      Yours, always.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S2 — SLOT MACHINE
+══════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="label">02 — slot machine</div>
+  <div class="machine-box">
+    <div class="reels-row">
+      <div class="reel-window"><div class="reel-strip" id="r0"></div></div>
+      <div class="reel-window"><div class="reel-strip" id="r1"></div></div>
+      <div class="reel-window"><div class="reel-strip" id="r2"></div></div>
+    </div>
+    <button class="spin-btn" id="spin-btn">pull</button>
+    <div class="slot-msg" id="slot-msg">pull to find out</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     S3 — SCRATCH CARD
+══════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="label">03 — scratch card</div>
+  <div class="scratch-wrap" id="scratch-wrap">
+    <div class="scratch-back">
+      <p>You are the person I did not know I was looking for &mdash; the answer to a question I had not yet learned to ask.</p>
+    </div>
+    <canvas id="scratch-canvas"></canvas>
+  </div>
+  <div class="scratch-hint">scratch to reveal</div>
+  <button class="text-btn" id="scratch-reset">reset</button>
+</section>
+
+<!-- ══════════════════════════════════════
+     S4 — GALLERY
+     To add real photos: replace <div class="gal-ph">photo N</div>
+     with <img src="your-photo.jpg" alt="">
+══════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="label">04 — memories</div>
+  <div class="gallery-grid">
+    <div class="gal-item">
+      <div class="gal-ph">photo 1</div>
+      <div class="gal-caption">This was one of my favorite days with you.</div>
+    </div>
+    <div class="gal-item">
+      <div class="gal-ph">photo 2</div>
+      <div class="gal-caption">I love how you look when you do not notice me watching.</div>
+    </div>
+    <div class="gal-item">
+      <div class="gal-ph">photo 3</div>
+      <div class="gal-caption">Right here. This moment. I knew.</div>
+    </div>
+    <div class="gal-item">
+      <div class="gal-ph">photo 4</div>
+      <div class="gal-caption">Every ordinary day with you feels like something worth keeping.</div>
+    </div>
+    <div class="gal-item">
+      <div class="gal-ph">photo 5</div>
+      <div class="gal-caption">You make me want to be better. You make me think I can.</div>
+    </div>
+    <div class="gal-item">
+      <div class="gal-ph">photo 6</div>
+      <div class="gal-caption">I am keeping this one in my heart forever.</div>
+    </div>
+  </div>
+  <div class="gal-hint">tap a photo to reveal</div>
+</section>
+
+<!-- ══════════════════════════════════════
+     S5 — FLIP CARDS
+══════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="label">05 — reasons</div>
+  <div class="cards-wrap">
+    <div class="flip-card"><div class="flip-inner">
+      <div class="flip-front"><span class="flip-num">01</span><span class="flip-lbl">reason</span></div>
+      <div class="flip-back">The way you laugh at your own jokes before finishing them.</div>
+    </div></div>
+    <div class="flip-card"><div class="flip-inner">
+      <div class="flip-front"><span class="flip-num">02</span><span class="flip-lbl">reason</span></div>
+      <div class="flip-back">How you care deeply and try not to show it.</div>
+    </div></div>
+    <div class="flip-card"><div class="flip-inner">
+      <div class="flip-front"><span class="flip-num">03</span><span class="flip-lbl">reason</span></div>
+      <div class="flip-back">The softness underneath all that stubbornness.</div>
+    </div></div>
+    <div class="flip-card"><div class="flip-inner">
+      <div class="flip-front"><span class="flip-num">04</span><span class="flip-lbl">reason</span></div>
+      <div class="flip-back">You make ordinary things feel like they matter.</div>
+    </div></div>
+    <div class="flip-card"><div class="flip-inner">
+      <div class="flip-front"><span class="flip-num">05</span><span class="flip-lbl">reason</span></div>
+      <div class="flip-back">The way you exist in a room and I always know where you are.</div>
+    </div></div>
+    <div class="flip-card"><div class="flip-inner">
+      <div class="flip-front"><span class="flip-num">06</span><span class="flip-lbl">reason</span></div>
+      <div class="flip-back">Simply this: you chose me too.</div>
+    </div></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     S6 — TYPEWRITER
+══════════════════════════════════════ -->
+<section class="section" id="s6">
+  <div class="label">06 — words</div>
+  <div class="tw-wrap">
+    <div class="tw-text" id="tw-text"><span class="cursor"></span></div>
+    <div class="tw-controls">
+      <button class="text-btn" id="tw-btn">type</button>
+      <button class="text-btn" id="tw-reset-btn">reset</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     S7 — CONSTELLATION
+══════════════════════════════════════ -->
+<section class="section" id="s7">
+  <div class="label">07 — draw us</div>
+  <canvas id="star-canvas" width="420" height="260"></canvas>
+  <div class="star-hint">click to place stars &mdash; they connect</div>
+  <button class="text-btn" id="clear-stars">clear</button>
+</section>
+
+<!-- ══════════════════════════════════════
+     S8 — MORSE CODE
+══════════════════════════════════════ -->
+<section class="section" id="s8">
+  <div class="label">08 — morse code</div>
+  <div class="morse-wrap">
+    <div class="morse-display" id="morse-display">. . .</div>
+    <div class="morse-decoded" id="morse-decoded"></div>
+    <div class="morse-keys">
+      <button class="morse-key" id="morse-dot">dot</button>
+      <button class="morse-key" id="morse-dash">dash</button>
+      <button class="morse-key" id="morse-space">space</button>
+      <button class="morse-key" id="morse-clear">clear</button>
+    </div>
+    <div class="morse-hint">
+      I L Y in morse is &nbsp; .. &nbsp; .-.. &nbsp; -.--<br>
+      type it and see what happens
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     S9 — BREATHING / TOGETHER
+══════════════════════════════════════ -->
+<section class="section" id="s9">
+  <div class="label">09 — breathe</div>
+  <div class="breath-wrap">
+    <div class="breath-circle-wrap">
+      <div class="breath-ring" id="breath-ring"></div>
+      <div class="breath-dot"  id="breath-dot"></div>
+    </div>
+    <div class="breath-label" id="breath-label">press start</div>
+    <div class="breath-msg">
+      Wherever you are right now, breathe with me.
+      In for four, hold for four, out for four.
+    </div>
+    <button class="breath-btn" id="breath-start">start</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+/* ─────────────────────────────────────
+   NAVIGATION
+───────────────────────────────────── */
+const TOTAL = 9;
+let current = 1;
+
+const btnPrev = document.getElementById('btn-prev');
+const btnNext = document.getElementById('btn-next');
+const counter = document.getElementById('counter');
+
+function goTo(n) {
+  if (n < 1 || n > TOTAL) return;
+  document.getElementById(`s${current}`).classList.remove('active');
+  current = n;
+  document.getElementById(`s${current}`).classList.add('active');
+  counter.textContent = String(current).padStart(2,'0') + ' / ' + String(TOTAL).padStart(2,'0');
+  btnPrev.disabled = current === 1;
+  btnNext.disabled = current === TOTAL;
+  if (current === 3 && !scratchReady) initScratch();
+  if (current === 7 && !starReady)    initStarCanvas();
+}
+
+btnPrev.addEventListener('click', () => goTo(current - 1));
+btnNext.addEventListener('click', () => goTo(current + 1));
+
+/* ─────────────────────────────────────
+   S1 — LETTER
+───────────────────────────────────── */
+const letterOverlay = document.getElementById('letter-overlay');
+document.getElementById('open-letter').addEventListener('click',  () => letterOverlay.classList.add('open'));
+document.getElementById('close-letter').addEventListener('click', () => letterOverlay.classList.remove('open'));
+letterOverlay.addEventListener('click', e => {
+  if (e.target === letterOverlay) letterOverlay.classList.remove('open');
+});
+
+/* ─────────────────────────────────────
+   S2 — SLOT MACHINE
+───────────────────────────────────── */
+const REELS = [
+  ['I'],
+  ['love', 'want', 'need', 'miss', 'adore', 'choose'],
+  ['you']
+];
+const CAPTIONS = {
+  love:   'always and forever.',
+  want:   'only you, no one else.',
+  need:   'more than words can hold.',
+  miss:   'even when you are right here.',
+  adore:  'every single piece of you.',
+  choose: 'every day, every time.'
+};
+const ITEM_H = 56;
+const COPIES = 8;
+let slotSpinning = false;
+
+// Build strips
+[0, 1, 2].forEach(ri => {
+  const strip = document.getElementById(`r${ri}`);
+  for (let c = 0; c < COPIES; c++) {
+    REELS[ri].forEach(word => {
+      const el = document.createElement('div');
+      el.className = 'reel-item';
+      el.textContent = word;
+      strip.appendChild(el);
+    });
+  }
+  strip.style.transform = 'translateY(0px)';
+});
+
+document.getElementById('spin-btn').addEventListener('click', () => {
+  if (slotSpinning) return;
+  slotSpinning = true;
+  const spinBtn = document.getElementById('spin-btn');
+  spinBtn.disabled = true;
+  document.getElementById('slot-msg').textContent = '...';
+
+  const wordIdx = Math.floor(Math.random() * REELS[1].length);
+  const targets = [0, wordIdx, 0];
+
+  [0, 1, 2].forEach((ri, i) => {
+    const strip = document.getElementById(`r${ri}`);
+    const N = REELS[ri].length;
+    const t = targets[ri];
+
+    // Jump to top instantly
+    strip.style.transition = 'none';
+    strip.style.transform = 'translateY(0px)';
+    strip.getBoundingClientRect(); // force reflow
+
+    // Animate to target position in copy 4
+    setTimeout(() => {
+      const finalY = -(4 * N + t) * ITEM_H;
+      strip.style.transition = `transform ${0.95 + i * 0.18}s cubic-bezier(0.22, 1, 0.36, 1)`;
+      strip.style.transform = `translateY(${finalY}px)`;
+    }, 40 + i * 70);
+  });
+
+  setTimeout(() => {
+    const word = REELS[1][wordIdx];
+    document.getElementById('slot-msg').textContent = `I ${word} you — ${CAPTIONS[word]}`;
+    slotSpinning = false;
+    spinBtn.disabled = false;
+  }, 1600);
+});
+
+/* ─────────────────────────────────────
+   S3 — SCRATCH CARD
+───────────────────────────────────── */
+let scratchReady = false;
+let scratchCtx, scratchCanvas;
+
+function initScratch() {
+  scratchReady = true;
+  const wrap = document.getElementById('scratch-wrap');
+  scratchCanvas = document.getElementById('scratch-canvas');
+  const W = wrap.offsetWidth;
+  const H = wrap.offsetHeight;
+  scratchCanvas.width = W;
+  scratchCanvas.height = H;
+  scratchCanvas.style.width  = W + 'px';
+  scratchCanvas.style.height = H + 'px';
+  scratchCtx = scratchCanvas.getContext('2d');
+  drawScratchCover();
+  setupScratchEvents();
+}
+
+function drawScratchCover() {
+  const W = scratchCanvas.width, H = scratchCanvas.height;
+  const prevComp = scratchCtx.globalCompositeOperation;
+  scratchCtx.globalCompositeOperation = 'source-over';
+  scratchCtx.clearRect(0, 0, W, H);
+  scratchCtx.fillStyle = '#b8b4ac';
+  scratchCtx.fillRect(0, 0, W, H);
+  // Crosshatch texture
+  scratchCtx.strokeStyle = 'rgba(0,0,0,0.07)';
+  scratchCtx.lineWidth = 1;
+  for (let x = 0; x < W; x += 12) {
+    scratchCtx.beginPath(); scratchCtx.moveTo(x, 0); scratchCtx.lineTo(x, H); scratchCtx.stroke();
+  }
+  for (let y = 0; y < H; y += 12) {
+    scratchCtx.beginPath(); scratchCtx.moveTo(0, y); scratchCtx.lineTo(W, y); scratchCtx.stroke();
+  }
+  // Label
+  scratchCtx.fillStyle = 'rgba(255,255,255,0.6)';
+  scratchCtx.font = '10px "Courier New", monospace';
+  scratchCtx.textAlign = 'center';
+  scratchCtx.fillText('S C R A T C H   H E R E', W / 2, H / 2);
+  scratchCtx.globalCompositeOperation = prevComp;
+}
+
+function setupScratchEvents() {
+  let drawing = false;
+  scratchCtx.globalCompositeOperation = 'destination-out';
+  scratchCtx.lineWidth = 46;
+  scratchCtx.lineCap = 'round';
+  scratchCtx.lineJoin = 'round';
+
+  function getPos(e) {
+    const r = scratchCanvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return { x: src.clientX - r.left, y: src.clientY - r.top };
+  }
+
+  scratchCanvas.addEventListener('mousedown',  e => { drawing = true; const p = getPos(e); scratchCtx.beginPath(); scratchCtx.moveTo(p.x, p.y); });
+  scratchCanvas.addEventListener('mousemove',  e => { if (!drawing) return; const p = getPos(e); scratchCtx.lineTo(p.x, p.y); scratchCtx.stroke(); });
+  scratchCanvas.addEventListener('mouseup',    () => drawing = false);
+  scratchCanvas.addEventListener('mouseleave', () => drawing = false);
+  scratchCanvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e); scratchCtx.beginPath(); scratchCtx.moveTo(p.x, p.y); }, { passive: false });
+  scratchCanvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!drawing) return; const p = getPos(e); scratchCtx.lineTo(p.x, p.y); scratchCtx.stroke(); }, { passive: false });
+  scratchCanvas.addEventListener('touchend',   () => drawing = false);
+}
+
+document.getElementById('scratch-reset').addEventListener('click', () => {
+  if (!scratchReady) return;
+  drawScratchCover();
+});
+
+/* ─────────────────────────────────────
+   S4 — GALLERY
+───────────────────────────────────── */
+document.querySelectorAll('.gal-item').forEach(item => {
+  item.addEventListener('click', () => item.classList.toggle('active'));
+});
+
+/* ─────────────────────────────────────
+   S5 — FLIP CARDS
+───────────────────────────────────── */
+document.querySelectorAll('.flip-card').forEach(card => {
+  card.addEventListener('click', () => card.classList.toggle('flipped'));
+});
+
+/* ─────────────────────────────────────
+   S6 — TYPEWRITER
+───────────────────────────────────── */
+const TW_LINES = [
+  'I think about you in small moments.',
+  'When a song plays and I want you to hear it.',
+  'When something funny happens and you are the first I want to tell.',
+  '',
+  'You are not just someone I love.',
+  'You are the person I keep choosing,',
+  'in the quiet, in the chaos,',
+  'in all the ordinary space between.',
+  '',
+  'That is all. That is everything.'
+];
+let twTimer = null, twRunning = false;
+
+function resetTW() {
+  clearTimeout(twTimer);
+  twRunning = false;
+  document.getElementById('tw-text').innerHTML = '<span class="cursor"></span>';
+}
+
+function runTW() {
+  if (twRunning) return;
+  twRunning = true;
+  const el = document.getElementById('tw-text');
+  el.innerHTML = '';
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  el.appendChild(cursor);
+
+  let li = 0, ci = 0;
+  function tick() {
+    if (li >= TW_LINES.length) return;
+    const line = TW_LINES[li];
+    if (line === '') {
+      if (li > 0) el.insertBefore(document.createElement('br'), cursor);
+      el.insertBefore(document.createElement('br'), cursor);
+      li++; ci = 0;
+      twTimer = setTimeout(tick, 200);
+      return;
+    }
+    if (ci === 0 && li > 0 && TW_LINES[li - 1] !== '') {
+      el.insertBefore(document.createElement('br'), cursor);
+    }
+    if (ci < line.length) {
+      el.insertBefore(document.createTextNode(line[ci]), cursor);
+      ci++;
+      twTimer = setTimeout(tick, 36 + Math.random() * 28);
+    } else {
+      li++; ci = 0;
+      twTimer = setTimeout(tick, 320);
+    }
+  }
+  tick();
+}
+
+document.getElementById('tw-btn').addEventListener('click', runTW);
+document.getElementById('tw-reset-btn').addEventListener('click', resetTW);
+
+/* ─────────────────────────────────────
+   S7 — CONSTELLATION
+───────────────────────────────────── */
+let starReady = false;
+let starCtx, stars = [];
+
+function initStarCanvas() {
+  starReady = true;
+  const canvas = document.getElementById('star-canvas');
+  starCtx = canvas.getContext('2d');
+  redrawStars();
+  canvas.addEventListener('click', e => {
+    const r = canvas.getBoundingClientRect();
+    stars.push({ x: e.clientX - r.left, y: e.clientY - r.top });
+    redrawStars();
+  });
+}
+
+function redrawStars() {
+  if (!starCtx) return;
+  const canvas = document.getElementById('star-canvas');
+  const W = canvas.width, H = canvas.height;
+  starCtx.clearRect(0, 0, W, H);
+
+  // Lines
+  if (stars.length > 1) {
+    starCtx.beginPath();
+    starCtx.strokeStyle = 'rgba(0,0,0,0.15)';
+    starCtx.lineWidth = 0.7;
+    for (let i = 1; i < stars.length; i++) {
+      starCtx.moveTo(stars[i - 1].x, stars[i - 1].y);
+      starCtx.lineTo(stars[i].x,     stars[i].y);
+    }
+    starCtx.stroke();
+  }
+
+  // Stars and labels
+  stars.forEach((s, i) => {
+    starCtx.beginPath();
+    starCtx.arc(s.x, s.y, 3.5, 0, Math.PI * 2);
+    starCtx.fillStyle = '#111';
+    starCtx.fill();
+
+    if (i === 0 || i === 1) {
+      starCtx.fillStyle = 'rgba(0,0,0,0.42)';
+      starCtx.font = '9px "Courier New", monospace';
+      starCtx.textAlign = 'left';
+      starCtx.fillText(i === 0 ? 'you' : 'me', s.x + 8, s.y + 4);
+    }
+  });
+}
+
+document.getElementById('clear-stars').addEventListener('click', () => {
+  stars = [];
+  redrawStars();
+});
+
+/* ─────────────────────────────────────
+   S8 — MORSE CODE
+───────────────────────────────────── */
+const MORSE_MAP = {
+  '.-': 'A', '-...': 'B', '-.-.': 'C', '-..': 'D', '.': 'E',
+  '..-.': 'F', '--.': 'G', '....': 'H', '..': 'I', '.---': 'J',
+  '-.-': 'K', '.-..': 'L', '--': 'M', '-.': 'N', '---': 'O',
+  '.--.': 'P', '--.-': 'Q', '.-.': 'R', '...': 'S', '-': 'T',
+  '..-': 'U', '...-': 'V', '.--': 'W', '-..-': 'X', '-.--': 'Y',
+  '--..': 'Z'
+};
+
+const ILY_MORSE = ['..', '.-..', '-.--'];
+let morseInput = [];
+let morseWords = [[]]; // array of letter arrays
+
+function morseRender() {
+  const flat = morseWords.map(word => word.join(' ')).join('   ');
+  document.getElementById('morse-display').textContent = flat || '. . .';
+
+  // Decode
+  let decoded = '';
+  morseWords.forEach((word, wi) => {
+    if (wi > 0) decoded += ' ';
+    word.forEach(code => { decoded += (MORSE_MAP[code] || '?'); });
+  });
+  document.getElementById('morse-decoded').textContent = decoded;
+
+  // Easter egg: I L Y
+  const currentWords = morseWords.map(w => w.join(' ')).join('|');
+  const ilyPattern = ILY_MORSE.join(' ');
+  if (decoded.replace(/\s/g,'') === 'ILY') {
+    document.getElementById('morse-decoded').textContent = 'I Love You';
+    document.getElementById('morse-display').style.fontStyle = 'italic';
+  } else {
+    document.getElementById('morse-display').style.fontStyle = 'normal';
+  }
+}
+
+function morseCurrentLetter() {
+  return morseWords[morseWords.length - 1];
+}
+
+document.getElementById('morse-dot').addEventListener('click', () => {
+  morseCurrentLetter().push('.');
+  morseRender();
+});
+document.getElementById('morse-dash').addEventListener('click', () => {
+  morseCurrentLetter().push('-');
+  morseRender();
+});
+document.getElementById('morse-space').addEventListener('click', () => {
+  const currentCode = morseCurrentLetter().join('');
+  if (currentCode.length > 0) {
+    morseWords[morseWords.length - 1] = [currentCode];
+    morseWords.push([]);
+  }
+  morseRender();
+});
+document.getElementById('morse-clear').addEventListener('click', () => {
+  morseWords = [[]];
+  morseRender();
+});
+
+/* ─────────────────────────────────────
+   S9 — BREATHING
+───────────────────────────────────── */
+let breathRunning = false;
+let breathRaf = null;
+let breathStart = null;
+
+const PHASES = [
+  { label: 'breathe in',  dur: 4000, scale: 1.9 },
+  { label: 'hold',        dur: 4000, scale: 1.9 },
+  { label: 'breathe out', dur: 4000, scale: 1.0 },
+  { label: 'hold',        dur: 4000, scale: 1.0 }
+];
+const CYCLE = PHASES.reduce((a, p) => a + p.dur, 0);
+
+function breathTick(ts) {
+  if (!breathRunning) return;
+  if (!breathStart) breathStart = ts;
+  const elapsed = (ts - breathStart) % CYCLE;
+
+  let acc = 0;
+  let phase = PHASES[0];
+  let phaseProgress = 0;
+  for (const p of PHASES) {
+    if (elapsed < acc + p.dur) {
+      phase = p;
+      phaseProgress = (elapsed - acc) / p.dur;
+      break;
+    }
+    acc += p.dur;
+  }
+
+  // Ease in-out
+  const ease = phaseProgress < 0.5
+    ? 2 * phaseProgress * phaseProgress
+    : 1 - Math.pow(-2 * phaseProgress + 2, 2) / 2;
+
+  const prevPhaseIdx = PHASES.indexOf(phase);
+  const prevScale = prevPhaseIdx === 0 ? PHASES[PHASES.length - 1].scale : PHASES[prevPhaseIdx - 1].scale;
+  const scale = prevScale + (phase.scale - prevScale) * ease;
+
+  document.getElementById('breath-ring').style.transform = `scale(${scale})`;
+  document.getElementById('breath-label').textContent = phase.label;
+
+  breathRaf = requestAnimationFrame(breathTick);
+}
+
+document.getElementById('breath-start').addEventListener('click', () => {
+  const btn = document.getElementById('breath-start');
+  if (breathRunning) {
+    breathRunning = false;
+    cancelAnimationFrame(breathRaf);
+    breathStart = null;
+    btn.textContent = 'start';
+    document.getElementById('breath-label').textContent = 'press start';
+    document.getElementById('breath-ring').style.transform = 'scale(1)';
+  } else {
+    breathRunning = true;
+    btn.textContent = 'stop';
+    breathRaf = requestAnimationFrame(breathTick);
+  }
+});
+</script>
+</body>
+</html>
